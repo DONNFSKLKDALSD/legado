@@ -1,7 +1,6 @@
 package io.legado.app.ui.book.read
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
@@ -169,14 +168,12 @@ class ReadBookActivity : BaseReadBookActivity(),
         }
     private val replaceActivity =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            it ?: return@registerForActivityResult
             if (it.resultCode == RESULT_OK) {
                 viewModel.replaceRuleChanged()
             }
         }
     private val searchContentActivity =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            it ?: return@registerForActivityResult
             it.data?.let { data ->
                 val key = data.getLongExtra("key", System.currentTimeMillis())
                 val index = data.getIntExtra("index", 0)
@@ -232,7 +229,7 @@ class ReadBookActivity : BaseReadBookActivity(),
     override val pageFactory get() = binding.readView.pageFactory
     override val pageDelegate get() = binding.readView.pageDelegate
     override val headerHeight: Int get() = binding.readView.curPage.headerHeight
-    private val menuLayoutIsVisible get() = bottomDialog > 0 || binding.readMenu.isVisible
+    private val menuLayoutIsVisible get() = bottomDialog > 0 || binding.readMenu.isVisible || binding.searchMenu.bottomMenuVisible
     private val nextPageDebounce by lazy { Debounce { keyPage(PageDirection.NEXT) } }
     private val prevPageDebounce by lazy { Debounce { keyPage(PageDirection.PREV) } }
     private var bookChanged = false
@@ -428,10 +425,10 @@ class ReadBookActivity : BaseReadBookActivity(),
                 else -> when (item.itemId) {
                     R.id.menu_enable_replace -> item.isChecked = book.getUseReplaceRule()
                     R.id.menu_re_segment -> item.isChecked = book.getReSegment()
-                    R.id.menu_enable_review -> {
-                        item.isVisible = BuildConfig.DEBUG
-                        item.isChecked = AppConfig.enableReview
-                    }
+//                    R.id.menu_enable_review -> {
+//                        item.isVisible = BuildConfig.DEBUG
+//                        item.isChecked = AppConfig.enableReview
+//                    }
 
                     R.id.menu_reverse_content -> item.isVisible = onLine
                     R.id.menu_del_ruby_tag -> item.isChecked = book.getDelTag(Book.rubyTag)
@@ -530,11 +527,11 @@ class ReadBookActivity : BaseReadBookActivity(),
                 ReadBook.loadContent(false)
             }
 
-            R.id.menu_enable_review -> {
-                AppConfig.enableReview = !AppConfig.enableReview
-                item.isChecked = AppConfig.enableReview
-                ReadBook.loadContent(false)
-            }
+//            R.id.menu_enable_review -> {
+//                AppConfig.enableReview = !AppConfig.enableReview
+//                item.isChecked = AppConfig.enableReview
+//                ReadBook.loadContent(false)
+//            }
 
             R.id.menu_del_ruby_tag -> ReadBook.book?.let {
                 item.isChecked = !item.isChecked
@@ -1293,7 +1290,7 @@ class ReadBookActivity : BaseReadBookActivity(),
                     analyzeRule.setBaseUrl(chapter.url)
                     analyzeRule.chapter = chapter
                     analyzeRule.evalJS(payAction).toString()
-                }.onSuccess {
+                }.onSuccess(IO) {
                     if (it.isAbsUrl()) {
                         startActivity<WebViewActivity> {
                             putExtra("title", getString(R.string.chapter_pay))
@@ -1578,7 +1575,7 @@ class ReadBookActivity : BaseReadBookActivity(),
                     ReadBook.book?.removeType(BookType.notShelf)
                     ReadBook.book?.save()
                     ReadBook.inBookshelf = true
-                    setResult(Activity.RESULT_OK)
+                    setResult(RESULT_OK)
                 }
                 noButton { viewModel.removeFromBookshelf { super.finish() } }
             }

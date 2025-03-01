@@ -127,10 +127,14 @@ class AddToBookshelfDialog() : BaseDialogFragment(R.layout.dialog_add_to_bookshe
                     }
                 }
                 appDb.bookSourceDao.hasBookUrlPattern.forEach { source ->
-                    if (bookUrl.matches(source.bookUrlPattern!!.toRegex())) {
-                        getBookInfo(bookUrl, source)?.let { book ->
-                            return@execute book
+                    try {
+                        val bs = source.getBookSource()!!
+                        if (bookUrl.matches(bs.bookUrlPattern!!.toRegex())) {
+                            getBookInfo(bookUrl, bs)?.let { book ->
+                                return@execute book
+                            }
                         }
+                    } catch (_: Exception) {
                     }
                 }
                 throw NoStackTraceException("未找到匹配书源")
